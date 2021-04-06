@@ -1,8 +1,11 @@
-const util = require('util');
 const url = require('url');
 
 let fallbacksDisabled = false;
 let throwError = true;
+let boolishPatterns = {
+  true: /1|true/,
+  false: /0|false/
+}
 
 function _value(varName, fallback) {
   const value = process.env[varName];
@@ -61,27 +64,24 @@ const convert = {
 
     return value === 'true';
   },
-  boolish: function(value) {
-    try {
-      return convert.bool(value);
-    } catch (err) {
-      const isBool = value === '1' || value === '0';
-      if (!isBool) {
-        throw new Error('GetEnv.NoBoolean: ' + value + ' is not a boolean.');
-      }
-
-      return value === '1';
+  boolish: function(value, patterns) {
+    patterns = patterns || boolishPatterns;
+    const isBool = patterns[true].test(value) || patterns[false].test(value);
+    if (!isBool) {
+      throw new Error('GetEnv.NoBoolean: ' + value + ' is not a boolean.');
     }
+
+    return patterns[true].test(value);
   },
   url: url.parse,
 };
 
 function converter(type) {
-  return function(varName, fallback) {
+  return function(varName, fallback, patterns) {
     if (typeof varName == 'string') {
       // default
       const value = _value(varName, fallback);
-      return convert[type](value);
+      return convert[type](value, patterns);
     } else {
       // multibert!
       return getenv.multi(varName);
@@ -102,7 +102,7 @@ getenv.array = function array(varName, type, fallback, separator) {
     throw new Error('GetEnv.ArrayUndefinedType: Unknown array type ' + type);
   }
   const value = _value(varName, fallback);
-  return value.split(separator).map(convert[type]);
+  return value.split(separator).map(value => convert[type](value));
 };
 
 getenv.multi = function multi(spec) {
@@ -147,5 +147,11 @@ getenv.disableErrors = function() {
 getenv.enableErrors = function() {
   throwError = true;
 };
+
+getenv.setBoolishPatterns = function(patterns) {
+  const oldPatterns = boolishPatterns;
+  boolishPatterns = patterns;
+  return oldPatterns;
+}
 
 module.exports = getenv;

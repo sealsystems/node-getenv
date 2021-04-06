@@ -15,7 +15,9 @@ process.env.TEST_GETENV_INFINITY2 = -Infinity;
 process.env.TEST_GETENV_FALSE = 'false';
 process.env.TEST_GETENV_TRUE = 'true';
 process.env.TEST_GETENV_NOT_REALLY_TRUE = '1';
+process.env.TEST_GETENV_NOT_REALLY_TRUE2 = 'Yes';
 process.env.TEST_GETENV_NOT_REALLY_FALSE = '0';
+process.env.TEST_GETENV_NOT_REALLY_FALSE2= 'No';
 process.env.TEST_GETENV_WRONG_NUMBER_INPUT = '3 test';
 process.env.TEST_GETENV_STRING_ARRAY1 = 'one';
 process.env.TEST_GETENV_STRING_ARRAY2 = 'one, two ,three , four';
@@ -251,6 +253,27 @@ tests['getenv.boolish() valid input'] = function() {
 
   data.forEach(function(item) {
     const boolVar = getenv.boolish(item.varName);
+    assert.strictEqual(boolVar, item.expected);
+  });
+};
+
+tests['getenv.boolish() valid input with per call defined patterns'] = function() {
+  const data = [
+    {
+      varName: 'TEST_GETENV_NOT_REALLY_FALSE2',
+      expected: false,
+    },
+    {
+      varName: 'TEST_GETENV_NOT_REALLY_TRUE2',
+      expected: true,
+    },
+  ];
+  const yesNoPatterns = {
+    true: /yes/i,
+    false: /no/i
+  };
+  data.forEach(function(item) {
+    const boolVar = getenv.boolish(item.varName, undefined, yesNoPatterns);
     assert.strictEqual(boolVar, item.expected);
   });
 };

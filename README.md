@@ -82,9 +82,16 @@ Return as float number.
 
 Return as boolean. Only allows true/false as valid values.
 
-### env.boolish(name, [fallback])
+### env.boolish(name, [fallback, [patterns]])
 
-Return as boolean. Allows true/false/1/0 as valid values.
+Return as boolean. Allows true/false/1/0 as valid default values. The valid values can be alternated be the `patterns` parameter, containing an object with regular expressions for `true` and `false` values. The default patterns are:
+
+```javascript
+{
+  true: /1|true/,
+  false: /0|false/
+}
+```
 
 ### env.array(name, [type], [fallback], [separator])
 
@@ -145,6 +152,19 @@ console.log(getenv('RANDOM'));
 getenv.enableErrors();
 console.log(getenv('RANDOM'));
 // Error: GetEnv.Nonexistent: RANDOM does not exist and no fallback value provided.
+```
+
+### env.setBoolishPatterns(patterns)
+
+Replaces the default patterns for `boolish` call by `patterns`. The `patterns` parameter, contains an object with  regular expressions for `true` and `false` values.
+The function returns the previous value.
+
+```javascript
+const originalPatterns = getenv.setBoolishPatterns({true: /y(es)?/i, false: /n(o)?/i});
+console.log(getenv.boolish('bool', 'Yes'));
+// true
+
+getenv.setBoolishPatterns(originalPatterns);
 ```
 
 ## Changelog
